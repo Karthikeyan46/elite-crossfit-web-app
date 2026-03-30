@@ -51,6 +51,16 @@
     margin-top: var(--spacing-2);
 }
 
+.address-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.address-link:hover p {
+    color: var(--color-primary);
+    transition: color 0.3s ease;
+}
+
 .pointer-none {
     cursor: default;
 }

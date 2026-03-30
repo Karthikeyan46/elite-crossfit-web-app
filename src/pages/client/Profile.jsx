@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, LogOut, Shield, Award, Settings as SettingsIcon, ChevronRight } from 'lucide-react';
-import { supabase, TABLES } from '../../lib/supabase';
+import { supabase, TABLES } from '../../services/supabaseClient';
 import Avatar from '../../components/Avatar';
 
 export default function Profile() {

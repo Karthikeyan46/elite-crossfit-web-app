@@ -10,6 +10,28 @@ alter table public.client_profiles
   add column if not exists accent_colour  text default '#a3e635',
   add column if not exists subscription_tier text default 'free';
 
+alter table public.food_logs
+  add column if not exists meal_type text default 'breakfast';
+
+-- ─── Sleep logs — bedtime & wake time support ────────────────────────────────
+-- Run this if your sleep_logs table already exists:
+alter table public.sleep_logs
+  add column if not exists sleep_time text,   -- e.g. "22:30"
+  add column if not exists wake_time  text;   -- e.g. "06:15"
+
+-- If sleep_logs doesn't exist yet, create it from scratch:
+create table if not exists public.sleep_logs (
+  id          uuid primary key default gen_random_uuid(),
+  client_id   text not null,
+  date        date not null,
+  hours       numeric(4,1),
+  quality     integer check (quality between 1 and 5),
+  sleep_time  text,
+  wake_time   text,
+  created_at  timestamptz default now(),
+  unique (client_id, date)
+);
+
 -- ─── Workouts (trainer-built plans) ──────────────────────────────────────────
 create table if not exists public.workouts (
   id          uuid primary key default gen_random_uuid(),

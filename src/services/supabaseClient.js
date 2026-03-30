@@ -17,12 +17,10 @@ export const signOut = () => {
 
 // ── Table name constants ─────────────────────────────────────────────────────
 export const TABLES = {
-  PROFILES:      'client_profiles',
-  WORKOUT_LOGS:  'workout_logs',
+  USERS:         'users',
+  FOODS:         'foods',
   FOOD_LOGS:     'food_logs',
-  WEIGHT_LOGS:   'weight_logs',
-  CHALLENGES:    'challenges',
-  CHECKINS:      'checkins',
-  PROGRESS_PHOTOS: 'progress_photos',
-  LEADS:         'demo_leads'
+  WORKOUTS:      'workouts',
+  WORKOUT_LOGS:  'workout_logs',
+  CLIENTS:       'clients'
 };

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Dumbbell, ClipboardCheck, Clock, ListChecks, CheckCircle2, Loader2, Play } from 'lucide-react';
-import { supabase, TABLES } from '../../lib/supabase';
+import { supabase, TABLES } from '../../services/supabaseClient';
 
 export default function Workout() {
   const navigate = useNavigate();
@@ -11,8 +11,16 @@ export default function Workout() {
   const [history, setHistory]           = useState([]);
   const [loading, setLoading]           = useState(true);
   const [loggingId, setLoggingId]       = useState(null);
+  const [diaryDate, setDiaryDate]       = useState(new Date());
+  const dateScrollRef                   = useRef(null);
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (dateScrollRef.current) {
+        dateScrollRef.current.scrollLeft = dateScrollRef.current.scrollWidth;
+    }
+  }, []);
 
   async function load() {
     try {
@@ -42,8 +50,7 @@ export default function Workout() {
         .from(TABLES.WORKOUT_LOGS)
         .select('*')
         .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .order('created_at', { ascending: false });
 
       if (historyError) throw historyError;
       setHistory(recent || []);
@@ -64,7 +71,8 @@ export default function Workout() {
         exercise: ex.name,
         category: 'Assigned',
         value: `${ex.sets}x${ex.reps}`,
-        calories_burnt: 0 // Could update later with actual logic
+        calories_burnt: 0,
+        created_at: diaryDate.toISOString()
       }));
 
       const { error } = await supabase.from(TABLES.WORKOUT_LOGS).insert(entries);
@@ -148,21 +156,77 @@ export default function Workout() {
           <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--color-text-dim)', margin: 0 }}>Recent Activity</h2>
         </div>
 
+        {/* 30-Day Scrollable Calendar */}
+        <div 
+            className="hide-scrollbar"
+            ref={dateScrollRef}
+            style={{ 
+                display: 'flex', 
+                overflowX: 'auto', 
+                gap: '0.8rem', 
+                paddingBottom: '0.5rem', 
+                marginBottom: '1.5rem',
+                WebkitOverflowScrolling: 'touch',
+                scrollBehavior: 'smooth'
+            }}
+        >
+            {[...Array(30)].map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - 29 + i);
+                const isSelected = d.toLocaleDateString() === diaryDate.toLocaleDateString();
+                const isToday = d.toLocaleDateString() === new Date().toLocaleDateString();
+                return (
+                    <button
+                        key={i}
+                        onClick={() => setDiaryDate(d)}
+                        style={{
+                            flex: '0 0 auto',
+                            minWidth: '60px',
+                            padding: '0.8rem 0.5rem',
+                            borderRadius: '12px',
+                            border: '1px solid',
+                            borderColor: isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                            background: isSelected ? 'rgba(163,230,53,0.1)' : 'rgba(255,255,255,0.02)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '6px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            color: '#fff'
+                        }}
+                    >
+                        <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: isSelected ? 'var(--primary)' : 'var(--text-dim)', fontWeight: 600 }}>
+                            {isToday ? 'Today' : d.toLocaleDateString([], { weekday: 'short' })}
+                        </span>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 700, color: isSelected ? 'var(--primary)' : '#fff' }}>
+                            {d.getDate()}
+                        </span>
+                    </button>
+                );
+            })}
+        </div>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {history.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--color-text-dim)', textAlign: 'center', padding: '1rem' }}>No activity logged recently.</p>
-          ) : (
-            history.map(log => (
-              <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--color-primary)' }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{log.exercise}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>{new Date(log.created_at).toLocaleDateString()} · {log.value}</div>
-                </div>
-                <CheckCircle2 size={16} color="var(--color-primary)" opacity={0.6} />
-              </div>
-            ))
-          )}
+          {(() => {
+              const selectedDateStr = diaryDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+              const dayLogs = history.filter(item => new Date(item.created_at).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) === selectedDateStr);
+              
+              if (dayLogs.length === 0) {
+                  return <p style={{ fontSize: 13, color: 'var(--color-text-dim)', textAlign: 'center', padding: '1rem' }}>No activity logged on this date.</p>;
+              }
+
+              return dayLogs.map(log => (
+                  <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--color-primary)' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500 }}>{log.exercise}</div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>{log.value}</div>
+                    </div>
+                    <CheckCircle2 size={16} color="var(--color-primary)" opacity={0.6} />
+                  </div>
+              ));
+          })()}
         </div>
       </section>
     </div>

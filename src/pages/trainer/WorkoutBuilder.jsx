@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
-import { supabase, TABLES } from '../../lib/supabase';
+import { supabase, TABLES } from '../../services/supabaseClient';
 
 const PRESETS = ['Bench Press','Squat','Deadlift','Pull-ups','Push-ups','Overhead Press','Barbell Row','Lunges','Plank','Dumbbell Curl','Tricep Dips','Leg Press','Cable Row','Lat Pulldown','Hip Thrust'];
 

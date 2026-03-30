@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
-import { supabase, TABLES } from '../../lib/supabase';
+import { supabase, TABLES } from '../../services/supabaseClient';
 
 export default function Settings() {
   const clientId = localStorage.getItem('clientId');

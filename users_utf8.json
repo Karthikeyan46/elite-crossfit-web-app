@@ -1,0 +1,17 @@
+﻿{
+    "value":  [
+                  {
+                      "username":  "trainer",
+                      "password":  "password123",
+                      "role":  "trainer",
+                      "name":  "Admin"
+                  },
+                  {
+                      "username":  "saravanakumar",
+                      "password":  "saravanakumar123",
+                      "role":  "client",
+                      "name":  "Saravanakumar"
+                  }
+              ],
+    "Count":  2
+}

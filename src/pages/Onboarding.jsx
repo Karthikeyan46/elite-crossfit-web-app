@@ -33,20 +33,11 @@ const Onboarding = () => {
                     <p style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)', marginBottom: '3rem' }}>
                         How do you plan to use the platform?
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-                        <div 
-                            className={`glass-panel role-card ${role === 'trainer' ? 'selected' : ''}`}
-                            onClick={() => handleRoleSelect('trainer')}
-                            style={{ padding: '2rem', cursor: 'pointer', transition: 'all 0.3s ease', border: role === 'trainer' ? '2px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)' }}
-                        >
-                            <ShieldCheck size={48} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
-                            <h3>I am a Trainer</h3>
-                            <p>Manage clients, design workouts, and scale your business.</p>
-                        </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', maxWidth: '800px', margin: '0 auto' }}>
                         <div 
                             className={`glass-panel role-card ${role === 'client' ? 'selected' : ''}`}
                             onClick={() => handleRoleSelect('client')}
-                            style={{ padding: '2rem', cursor: 'pointer', transition: 'all 0.3s ease', border: role === 'client' ? '2px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)' }}
+                            style={{ padding: '2rem', cursor: 'pointer', transition: 'all 0.3s ease', width: '100%', maxWidth: '400px', border: role === 'client' ? '2px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)' }}
                         >
                             <User size={48} color="var(--color-secondary)" style={{ marginBottom: '1rem' }} />
                             <h3>I am a Client</h3>

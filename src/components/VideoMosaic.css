@@ -1,0 +1,154 @@
+/* VideoMosaic.css */
+
+/* ── Section wrapper ─────────────────────────────────────────────────────── */
+.mosaic-section {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* ── Outer container — sets the aspect ratio ─────────────────────────────── */
+.mosaic-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 7;      /* same ratio as the Jain University screenshot */
+  background: #000;
+  overflow: hidden;
+}
+
+/* ── Grid of video cells ─────────────────────────────────────────────────── */
+.mosaic-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  gap: 3px;                  /* thin black line between cells */
+}
+
+/* ── Individual video cell ───────────────────────────────────────────────── */
+.mosaic-cell {
+  overflow: hidden;
+  position: relative;
+  background: #0a0a0a;
+}
+
+.mosaic-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  filter: brightness(0.75) saturate(1.1); /* Lightened videos for better visibility */
+  transition: all 0.4s ease;
+}
+
+.mosaic-cell:hover .mosaic-video {
+  filter: brightness(0.9) saturate(1.2);
+  transform: scale(1.05);
+}
+
+/* ── Placeholder shown before real videos are added ─────────────────────── */
+.mosaic-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #1e1e1e;
+}
+
+.mosaic-placeholder-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(163, 230, 53, 0.4);
+  font-family: 'Arial', sans-serif;
+}
+
+/* ── Dark overlay over the entire grid ──────────────────────────────────── */
+.mosaic-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);   /* Reduced opacity to make video clearer */
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── Centre text block ───────────────────────────────────────────────────── */
+.mosaic-text-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 0 20px;
+}
+
+.mosaic-headline {
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  font-size: clamp(24px, 4.2vw, 68px); /* Reduced font size */
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.85); /* Added transparency */
+  line-height: 1.1;
+  letter-spacing: 1px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); /* Softened shadow */
+  margin: 0;
+}
+
+.mosaic-accent {
+  color: rgba(205, 255, 0, 0.85);   /* Added transparency to brand lime */
+}
+
+/* Animated underline bar ── Jain screenshot style ───────────────────── */
+.mosaic-underline {
+  width: 180px;
+  height: 5px;
+  background: linear-gradient(90deg, #facc15 0%, #cdff00 100%);
+  border-radius: 2px;
+  margin: 18px auto 20px;
+}
+
+.mosaic-sub {
+  font-family: 'Arial', sans-serif;
+  font-size: clamp(10px, 1.5vw, 16px); /* Slightly reduced size */
+  color: rgba(255, 255, 255, 0.65); /* Increased transparency */
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ── Mobile: collapse to 3×4 on small screens ────────────────────────────── */
+@media (max-width: 900px) {
+  .mosaic-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .mosaic-wrap {
+    aspect-ratio: 9 / 16;
+    height: 80vh;
+  }
+
+  .mosaic-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+  }
+
+  .mosaic-headline {
+    font-size: clamp(28px, 9vw, 42px);
+  }
+
+  .mosaic-sub {
+    letter-spacing: 2px;
+  }
+}

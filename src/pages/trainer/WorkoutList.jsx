@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Dumbbell, ArrowLeft } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../services/supabaseClient';
 
 export default function WorkoutList() {
   const [workouts, setWorkouts] = useState([]);

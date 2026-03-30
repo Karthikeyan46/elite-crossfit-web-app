@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, History, Loader2, Image as ImageIcon, Trash2 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../services/supabaseClient';
 
 export default function Progress() {
   const navigate = useNavigate();

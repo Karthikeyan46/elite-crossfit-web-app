@@ -31,28 +31,100 @@ export const pricingPlans = [
 
 export const testimonials = [
     {
-        id: 1,
-        name: 'Amit Sharma',
-        role: 'Pro Member',
-        content: 'ELITE CROSS Fit Studio changed my life. The AI scanner is a game changer for my diet!',
+        id: 12,
+        name: 'Santhosh Subramanian',
+        role: 'Member',
+        content: 'I express my sincere gratitude to Moorthi for helping me rehab from my knee surgery. He understood the severity of my condition and provided the right rehab exercises that accelerated my recovery. I highly recommend Moorthi for all your fitness needs.',
         rating: 5,
-        image: 'https://i.pravatar.cc/150?u=amit'
+        image: 'https://i.pravatar.cc/150?u=santhosh'
+    },
+    {
+        id: 6,
+        name: 'Ramya Kamakshi',
+        role: 'Member',
+        content: 'I highly recommend working out at Elite CrossFit Udumalpet. Moorthy does not believe in one size fits all, he gives separate workouts to his clients based on their needs. He also gives dite plans. He has a well equipped gym set up.',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=ramya'
     },
     {
         id: 2,
-        name: 'Priya Singh',
+        name: 'Aravinth Athithya',
         role: 'Elite Member',
-        content: 'The trainers are world-class, and the app makes it so easy to follow my workouts.',
+        content: 'I lost 10 kg in just a month training with Murthy bro! He’s been incredibly supportive, professional, and guided me with both workouts and diet. Every session is well-planned, and he always pushes me to give my best. His motivation and consistent follow-up really kept me on track.',
         rating: 5,
-        image: 'https://i.pravatar.cc/150?u=priya'
+        image: 'https://i.pravatar.cc/150?u=aravinth'
     },
     {
-        id: 3,
-        name: 'Vikram Mehta',
-        role: 'Basic Member',
-        content: 'Great community and atmosphere. The facility is top-notch.',
-        rating: 4,
-        image: 'https://i.pravatar.cc/150?u=vikram'
+        id: 1,
+        name: 'Saravana Kumar Murugesan',
+        role: 'Pro Member',
+        content: 'I’ve never been to a GYM till my 48 !!! Recommended by my close friend and joined here two months back. Now I feel I was a bit late to join. The COACH Moorthy is simply superb in the way he trains that fits to the age and health conditions perfectly. Keep up the good work Man !! PERSONAL TRAINER means to make sense for each and every member of the GYM and he does it flawlessly.',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=saravana'
+    },
+    {
+        id: 11,
+        name: 'Naveen Thirumalaisamy',
+        role: 'Member',
+        content: 'One of the best decision I took is to join this Gym. If you want to stay fit and reduce the weight than this is the place you are looking for. Also Moorthy is best personal trainer and you will never get bored here in this Gym. You have to believe in the process and follow the diet plan religiously to achieve best results. I have reduced 15 Kgs from 87 to 72 Kgs.',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=naveen'
+    },
+    {
+        id: 5,
+        name: 'Praveena Jayabalan',
+        role: 'Member',
+        content: 'One and only best crossfit gym in udumalpet. Moorthy s best trainer I had ever seen. All the workouts r specific and unique to their clients depends on their intensity. Group workouts and workout with timer s peculiar one with moorthy\'s elite crossfit. Elite crossfit succed with clients word of mouth not with any commercial ads and sign boards.',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=praveena'
+    },
+    {
+        id: 9,
+        name: 'Selvaratha Mylsamy',
+        role: 'Member',
+        content: 'One of the best decisions I have made towards my fitness is joining elite cross fit. Trainer is a certified fitness coach, he will not just teach you the exercises instead he will look into all your medical reports and design exercises, diet chart for our requirement. All we have to do is eat the suggested food and show up to the gym no matter what.\n\nWe will be cultivated with right habits for life ( food , sleep and workout! ) 🙂',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=selvaratha'
+    },
+    {
+        id: 7,
+        name: 'Hari Janarthanan',
+        role: 'Member',
+        content: 'I joined Elite CrossFit at 77kg with high cholesterol and a large belly. Moorthy, who guided me like a brother, made the first few days easy. We started slow with warm-ups, and I began losing 4kg per month with his diet plan. After 100 days, I lost 12.5kg, reduced my fat from 28% to 11%, and my morning breathing issues improved. We had treks , cardrives, turf games , lot of interesting sessions and fun. I recommend this place if you want to have a new beginning.',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=hari'
+    },
+    {
+        id: 8,
+        name: 'Vaishnavi Raveendranathan',
+        role: 'Member',
+        content: 'Elite CrossFit is a great place if you’re looking out to get fit with personal training. Moorthy(trainer) tweaks the workouts to suit every individual\'s needs. His constant motivation and support helps you hit your milestone easily. He also keeps track of your diet and makes sure you hit the gym regularly with constant followups. Being consistent with the workouts and the recommended diet, you’ll be able to notice great results. I would definitely recommend giving this place a shot whether experienced or your first time!',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=vaishnavi'
+    },
+    {
+        id: 4,
+        name: 'Shreevidhya Leelakrishnan',
+        role: 'Elite Member',
+        content: 'Elite CrossFit has completely transformed the way I view fitness. Moorthy sir (coach) offers a constantly varied mix of workouts that combine strength training, cardio, and functional movement — all in a high-energy, supportive environment. He is focused on proper technique, which makes a huge difference, especially for beginners. He scales workouts to match each person’s fitness level. Over time, I\'ve noticed huge improvements in my strength, endurance, and confidence.',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=shreevidhya'
+    },
+    {
+        id: 13,
+        name: 'Priyadharshini Rajkumar',
+        role: 'Member',
+        content: 'Would definitely recommend this place to anyone looking to join cross fit.\nI have never been much into exercise ,I decided to pickup some form of Physical activity and am glad I started with elite CrossFit 2 months back.\nThe workout is different everyday.it improves both the stamina and strength.i really enjoy the workouts ana it\'s a wonderful place to achieve our best fitness level.This am saying mainly because of my trainer moorthy.he is a very good taskmaster and he takes personal commitment to help us give our best. With the balanced diet,he will motivate daily on our intake of food.\nThis place seems pretty good and spacious.\nAm sure you will get inspired by the whole environment in gym and it is one of the best gym in udumalpet.',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=priyadharshini'
+    },
+    {
+        id: 14,
+        name: 'Vivek Kanna',
+        role: 'Member',
+        content: 'Many said to get fit or to loose weight u need discipline, hard work, determination, sacrifice etc .., I started many times with the above attributes in mind,but couldn\'t continue & failed miserably... One fine day I joined this Elite fitness open mindedly and just followed what Moorthy said... He took care of my training discipline, schedule,variations, motivation, diet, push etc., and Me ?? All I did was to just hit the Gym on time everyday and do what is told.. Now in 2 months I lost 10 kgs.. (From 90 to 80kgs with 6 days workout and one cheat day)...Its been a huge transformation both physically and mentally. My goal is to reach 75kg which I may do in another one month.,But can\'t wait any longer to Thank &Credit Mr. Moorthy for my transformation..',
+        rating: 5,
+        image: 'https://i.pravatar.cc/150?u=vivek'
     }
 ];
 

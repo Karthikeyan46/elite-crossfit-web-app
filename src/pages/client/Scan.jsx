@@ -1,37 +1,36 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, Save, Loader2, CheckCircle2 } from 'lucide-react';
 import VisionScanner from '../../components/VisionScanner';
-import { supabase, TABLES } from '../../lib/supabase';
+import { supabase, TABLES } from '../../services/supabaseClient';
 
 export default function Scan() {
   const navigate = useNavigate();
-  const clientId = localStorage.getItem('clientId');
-  const [result, setResult] = useState(null);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const dateParam = params.get('date');
+  const typeParam = params.get('type');
+  
+  const clientId = localStorage.getItem('userId');
+  const [suggestions, setSuggestions] = useState(null);
+  const [selectedResult, setSelectedResult] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [mealType, setMealType] = useState('breakfast');
+  const [mealType, setMealType] = useState(typeParam || 'breakfast');
 
-  async function saveToLog() {
-    if (!result) return;
-    
-    if (localStorage.getItem('isDemoMode') === 'true') {
-      alert('Demo Scan complete! Join ELITE CROSS Fit Studio to save your logs and track progress.');
-      localStorage.removeItem('isDemoMode'); // Ends demo after one scan
-      navigate('/');
-      return;
-    }
-
+  async function saveToLog(result) {
     if (!clientId) return;
     setSaving(true);
     try {
+      const created_at = dateParam ? new Date(dateParam).toISOString() : new Date().toISOString();
       const { error } = await supabase.from(TABLES.FOOD_LOGS).insert([{
         client_id: clientId,
         name: result.name,
-        calories: result.calories,
-        protein: result.protein,
-        carbs: result.carbs,
-        fats: result.fats,
-        meal_type: mealType
+        calories: Math.round(result.calories),
+        protein: Math.round(result.protein),
+        carbs: Math.round(result.carbs),
+        fats: Math.round(result.fats),
+        meal_type: mealType,
+        created_at
       }]);
 
       if (error) throw error;
@@ -45,7 +44,7 @@ export default function Scan() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg-main)', padding: '20px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-main)', padding: '20px 20px 80px' }}>
       <header style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#fff', padding: 4 }}>
           <ArrowLeft size={24} />
@@ -53,71 +52,68 @@ export default function Scan() {
         <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>AI Food Scanner</h1>
       </header>
 
-      {!result ? (
-        <VisionScanner onResult={setResult} />
-      ) : (
-        <div className="glass-panel slide-up" style={{ padding: '1.5rem' }}>
-          <h2 style={{ fontSize: 24, marginBottom: '1.5rem', fontFamily: 'var(--font-display)' }}>Scan Result</h2>
+      {!suggestions ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <VisionScanner onResult={(results) => {
+            setSuggestions(results);
+            if (results && results.length > 0) {
+              setSelectedResult(results[0]);
+            }
+          }} />
           
-          <div style={{ display: 'grid', gap: 12, marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <span style={{ color: 'var(--color-text-dim)' }}>Detected</span>
-              <span style={{ fontWeight: 600 }}>{result.name}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <span style={{ color: 'var(--color-text-dim)' }}>Calories</span>
-              <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{result.calories} kcal</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-around', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: 12 }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>Protein</div>
-                <div style={{ fontWeight: 600 }}>{result.protein}g</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>Carbs</div>
-                <div style={{ fontWeight: 600 }}>{result.carbs}g</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>Fats</div>
-                <div style={{ fontWeight: 600 }}>{result.fats}g</div>
-              </div>
-            </div>
+          <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
+            <p style={{ color: 'var(--color-text-dim)', fontSize: 14 }}>
+              Snap a photo of your meal. FitCoach AI will identify the food and calculate nutrition.
+            </p>
           </div>
-
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-dim)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Meal Type</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {['breakfast', 'lunch', 'dinner', 'snack'].map(type => (
-                <button
-                  key={type}
-                  onClick={() => setMealType(type)}
-                  style={{
-                    flex: 1, padding: '10px 4px', fontSize: 11, borderRadius: 8, border: '1px solid',
-                    textTransform: 'capitalize', cursor: 'pointer', transition: 'all 0.2s',
-                    background: mealType === type ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
-                    borderColor: mealType === type ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
-                    color: mealType === type ? '#000' : '#fff'
-                  }}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
+        </div>
+      ) : (
+        <div className="animate-slide-up">
+          <h2 style={{ fontSize: 22, marginBottom: '1.5rem', fontWeight: 700 }}>AI Suggestions</h2>
+          <p style={{ color: 'var(--color-text-dim)', marginBottom: 20 }}>Select the item that best matches your meal:</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 30 }}>
+            {suggestions.map((item, idx) => (
+              <div 
+                key={idx} 
+                onClick={() => setSelectedResult(item)}
+                className={`glass-panel suggestion-card ${selectedResult === item ? 'selected-item' : ''}`}
+                style={{ 
+                  padding: '1rem', 
+                  cursor: 'pointer', 
+                  border: selectedResult === item ? '2px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 16 }}>{item.name}</div>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-dim)', marginTop: 4 }}>
+                      {item.calories} kcal · {item.protein}g P · {item.carbs}g C · {item.fats}g F
+                    </div>
+                  </div>
+                  {selectedResult === item && <CheckCircle2 size={24} color="var(--color-primary)" />}
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, display: 'inline-block', padding: '2px 8px', borderRadius: 4, background: item.confidence === 'high' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: item.confidence === 'high' ? '#4ade80' : '#fbbf24' }}>
+                  {item.confidence.toUpperCase()} CONFIDENCE
+                </div>
+              </div>
+            ))}
           </div>
 
           <div style={{ display: 'flex', gap: 12 }}>
             <button
-              onClick={() => setResult(null)}
+              onClick={() => { setSuggestions(null); setSelectedResult(null); }}
               className="secondary-button"
-              style={{ flex: 1, padding: '14px' }}
+              style={{ flex: 1, padding: '16px' }}
             >
               Retake
             </button>
             <button
-              onClick={saveToLog}
-              disabled={saving}
+              onClick={() => saveToLog(selectedResult)}
+              disabled={saving || !selectedResult}
               className="primary-button"
-              style={{ flex: 2, padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              style={{ flex: 2, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
               {saving ? 'Saving...' : 'Confirm & Log'}
@@ -125,6 +121,13 @@ export default function Scan() {
           </div>
         </div>
       )}
+
+      <style>{`
+        .selected-item {
+          background: rgba(var(--color-primary-rgb), 0.1) !important;
+          transform: translateY(-2px);
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from 'fs';
 
-const apiKey = "AIzaSyAU6Vv-I-Tfuu9nt_KKc03OoRZXbqxaaS4";
+const apiKey = process.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 async function listModels() {

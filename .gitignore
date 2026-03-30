@@ -26,3 +26,16 @@ dist-ssr
 # Media files
 *.mp4
 !public/antigravity_reel.mp4
+
+# Local Debug/Test Files
+test_output.txt
+models_debug.json
+models_list.json
+actual_models.json
+test.mjs
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example

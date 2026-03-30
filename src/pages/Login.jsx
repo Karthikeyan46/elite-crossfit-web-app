@@ -1,242 +1,142 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User, ShieldCheck, Mail, Phone, ArrowRight, X as CloseIcon } from 'lucide-react';
-import { supabase, TABLES } from '../lib/supabase';
-import './Dashboard.css';
+import { Lock, Mail, Loader2, ArrowRight } from 'lucide-react';
+import { supabase, TABLES } from '../services/supabaseClient';
 
 const Login = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [showDemoModal, setShowDemoModal] = useState(false);
-    const [leadForm, setLeadForm] = useState({ name: '', email: '', phone: '' });
-    const [submittingLead, setSubmittingLead] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoading(true);
         setError('');
-        localStorage.removeItem('isDemoMode'); // Clear any demo state
+
+        // 🟢 HARDCODED DEMO LOGIN
+        if (email === 'client@demo.ai' && password === 'password123') {
+            localStorage.setItem('userId', 'demo-client-id');
+            localStorage.setItem('userRole', 'client');
+            localStorage.setItem('userName', 'Demo Athlete');
+            localStorage.setItem('isClientLoggedIn', 'true');
+            localStorage.setItem('isDemoMode', 'true');
+            localStorage.setItem('isTrainer', 'false');
+            setTimeout(() => navigate('/dashboard'), 500);
+            return;
+        }
+
+        if (email === 'trainer@demo.ai' && password === 'password123') {
+            localStorage.setItem('userId', 'demo-trainer-id');
+            localStorage.setItem('userRole', 'trainer');
+            localStorage.setItem('userName', 'Coach Alpha');
+            localStorage.setItem('isClientLoggedIn', 'false');
+            localStorage.setItem('isDemoMode', 'true');
+            localStorage.setItem('isTrainer', 'true');
+            setTimeout(() => navigate('/trainer-dashboard'), 500);
+            return;
+        }
 
         try {
-            const { data, error: fetchError } = await supabase
-                .from('client_profiles')
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (authError) throw authError;
+
+            // Get user role from metadata or users table
+            const { data: userData, error: userError } = await supabase
+                .from(TABLES.USERS)
                 .select('*')
-                .eq('username', username.toLowerCase())
-                .eq('password', password)
+                .eq('id', authData.user.id)
                 .single();
 
-            if (fetchError || !data) {
-                setError('Invalid username or password. Please try again.');
-                return;
-            }
+            if (userError) throw userError;
 
-            const isTrainer = data.role === 'trainer';
+            localStorage.setItem('userId', authData.user.id);
+            localStorage.setItem('userRole', userData.role);
+            localStorage.setItem('userName', userData.name);
+            localStorage.setItem('isDemoMode', 'false');
+            localStorage.setItem('isClientLoggedIn', userData.role === 'client' ? 'true' : 'false');
+            localStorage.setItem('isTrainer', userData.role === 'trainer' ? 'true' : 'false');
 
-            localStorage.setItem('isClientLoggedIn', 'true');
-            localStorage.setItem('isTrainer', isTrainer ? 'true' : 'false');
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('clientId', data.id);
-            localStorage.setItem('clientName', data.name);
-
-            if (isTrainer) {
+            if (userData.role === 'trainer') {
                 navigate('/trainer-dashboard');
             } else {
                 navigate('/dashboard');
             }
         } catch (err) {
-            setError('Connection error. Please try again.');
-        }
-    };
-
-    const handleDemoStart = async (e) => {
-        e.preventDefault();
-        setSubmittingLead(true);
-        try {
-            // 1. Check if email or phone already used the demo
-            const { data: existingLead, error: checkError } = await supabase
-                .from(TABLES.LEADS)
-                .select('id')
-                .or(`email.eq.${leadForm.email},phone.eq.${leadForm.phone}`)
-                .maybeSingle();
-
-            if (existingLead) {
-                alert("This email or mobile number has already used the free demo. Please contact us for a full account!");
-                setShowDemoModal(false);
-                return;
-            }
-
-            // 2. Insert new lead
-            const { error: leadError } = await supabase
-                .from(TABLES.LEADS)
-                .insert([leadForm]);
-
-            if (leadError) throw leadError;
-
-            localStorage.setItem('isDemoMode', 'true');
-            localStorage.setItem('clientName', leadForm.name || 'Demo User');
-            navigate('/dashboard'); // We'll handle the scan trigger in Dashboard for better flow
-        } catch (err) {
-            console.error('Lead Save Error:', err);
-            // Even if lead fails, let them try the demo for UX
-            localStorage.setItem('isDemoMode', 'true');
-            navigate('/dashboard');
+            setError(err.message || 'Login failed. Please check your credentials.');
         } finally {
-            setSubmittingLead(false);
+            setLoading(false);
         }
     };
 
     return (
-        <div className="auth-container">
-            <div className="auth-card glass-panel fade-in">
-                <div className="auth-header">
-                    <h2>Member Portal</h2>
-                    <p className="text-dim">Log in to track your progress</p>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-main)', padding: '20px' }}>
+            <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 10px', color: 'var(--color-primary)' }}>FitCoach AI</h1>
+                    <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>Welcome back! Log in to your portal.</p>
                 </div>
 
-                <form className="auth-form" onSubmit={handleLogin}>
+                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     <div className="form-group">
-                        <label className="text-dim">Username</label>
-                        <div className="input-with-icon" style={{ position: 'relative' }}>
-                            <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                            <input
-                                type="text"
-                                placeholder="Enter your username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                style={{ paddingLeft: '40px' }}
-                                required
+                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: 8 }}>Email Address</label>
+                        <div style={{ position: 'relative' }}>
+                            <Mail size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-primary)' }} />
+                            <input 
+                                type="email" 
+                                required 
+                                className="glass-input"
+                                placeholder="name@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                style={{ width: '100%', padding: '12px 12px 12px 42px' }}
                             />
                         </div>
                     </div>
 
-                    <div className="form-group" style={{ marginTop: '1rem' }}>
-                        <label className="text-dim">Password</label>
-                        <div className="input-with-icon" style={{ position: 'relative' }}>
-                            <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                            <input
-                                type="password"
-                                placeholder="Enter your password"
+                    <div className="form-group">
+                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: 8 }}>Password</label>
+                        <div style={{ position: 'relative' }}>
+                            <Lock size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-primary)' }} />
+                            <input 
+                                type="password" 
+                                required 
+                                className="glass-input"
+                                placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                style={{ paddingLeft: '40px' }}
-                                required
+                                style={{ width: '100%', padding: '12px 12px 12px 42px' }}
                             />
                         </div>
                     </div>
 
-                    {error && <p style={{ color: '#ff4444', fontSize: '0.9rem', textAlign: 'center', marginTop: '1rem' }}>{error}</p>}
+                    {error && (
+                        <div style={{ color: '#ff4444', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(255, 68, 68, 0.1)', padding: '10px', borderRadius: '8px' }}>
+                            {error}
+                        </div>
+                    )}
 
-                    <button type="submit" className="primary-button w-full" style={{ marginTop: '1.5rem' }}>
-                        Enter Dashboard
+                    <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="primary-button" 
+                        style={{ padding: '14px', borderRadius: '12px', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                    >
+                        {loading ? <Loader2 className="animate-spin" size={20} /> : <><ArrowRight size={20} /> Sign In</>}
                     </button>
-
-                    <p className="text-dim text-center" style={{ fontSize: '0.8rem', marginTop: '1rem' }}>
-                        Need an account? Contact your trainer.
-                    </p>
-
-                    <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        <button 
-                            type="button" 
-                            className="glass-panel w-full" 
-                            onClick={() => setShowDemoModal(true)}
-                            style={{ 
-                                padding: '1rem', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'space-between',
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid var(--primary-dark)',
-                                borderRadius: '12px'
-                            }}
-                        >
-                            <div style={{ textAlign: 'left' }}>
-                                <p style={{ fontWeight: 700, margin: 0, color: 'var(--primary)' }}>Try Free Demo</p>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', margin: 0 }}>Scan one meal & see results</p>
-                            </div>
-                            <ArrowRight size={20} color="var(--primary)" />
-                        </button>
-                        {localStorage.getItem('demo_used_v1') && (
-                            <p className="text-dim text-center" style={{ fontSize: '0.7rem', marginTop: '0.5rem' }}>
-                                (Demo already used on this device)
-                            </p>
-                        )}
+                    
+                    <div style={{ textAlign: 'center', marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem' }}>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
+                            New to FitCoach? <span style={{ color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/onboarding')}>Create an account</span>
+                        </p>
                     </div>
                 </form>
             </div>
-
-            {/* Lead Capture Modal */}
-            {showDemoModal && (
-                <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-                    <div className="glass-panel animate-scale-in" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
-                        <button 
-                            onClick={() => setShowDemoModal(false)}
-                            style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', color: 'var(--color-text-dim)' }}
-                        >
-                            <CloseIcon size={20} />
-                        </button>
-                        
-                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Experience the Magic</h3>
-                            <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>Enter your details to start your one-time free AI scan demo.</p>
-                        </div>
-
-                        <form onSubmit={handleDemoStart} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div className="form-group">
-                                <label style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginBottom: '5px', display: 'block' }}>Name</label>
-                                <div className="input-with-icon" style={{ position: 'relative' }}>
-                                    <User size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="Your full name"
-                                        value={leadForm.name}
-                                        onChange={e => setLeadForm(p => ({ ...p, name: e.target.value }))}
-                                        style={{ width: '100%', paddingLeft: '40px' }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginBottom: '5px', display: 'block' }}>Email</label>
-                                <div className="input-with-icon" style={{ position: 'relative' }}>
-                                    <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                                    <input 
-                                        type="email" 
-                                        required 
-                                        placeholder="Email address"
-                                        value={leadForm.email}
-                                        onChange={e => setLeadForm(p => ({ ...p, email: e.target.value }))}
-                                        style={{ width: '100%', paddingLeft: '40px' }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginBottom: '5px', display: 'block' }}>Mobile</label>
-                                <div className="input-with-icon" style={{ position: 'relative' }}>
-                                    <Phone size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                                    <input 
-                                        type="tel" 
-                                        required 
-                                        placeholder="Mobile number"
-                                        value={leadForm.phone}
-                                        onChange={e => setLeadForm(p => ({ ...p, phone: e.target.value }))}
-                                        style={{ width: '100%', paddingLeft: '40px' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <button 
-                                type="submit" 
-                                className="primary-button w-full" 
-                                style={{ marginTop: '1rem' }}
-                                disabled={submittingLead}
-                            >
-                                {submittingLead ? 'Starting...' : 'Start My Free Scan'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

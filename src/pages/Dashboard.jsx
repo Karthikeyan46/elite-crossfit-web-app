@@ -17,9 +17,16 @@ import {
     Sun,
     Moon,
     Apple,
-    GlassWater
+    GlassWater,
+    Home,
+    ClipboardList,
+    Dumbbell,
+    BarChart2,
+    User,
+    Plus,
+    ChevronDown
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../services/supabaseClient';
 import './Dashboard.css';
 import VisionScanner from '../components/VisionScanner';
 import Avatar from '../components/Avatar';
@@ -60,12 +67,24 @@ const Dashboard = () => {
     const [dailySteps, setDailySteps] = useState(0);
     const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState(null);
+    const [motivationQuote, setMotivationQuote] = useState(localStorage.getItem('motivationQuote') || 'Think elite. Train elite.');
+    const [motivationPhoto, setMotivationPhoto] = useState(localStorage.getItem('motivationPhoto') || null);
+    const [isEditingQuote, setIsEditingQuote] = useState(false);
+    const [isUploadingMotivationPhoto, setIsUploadingMotivationPhoto] = useState(false);
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [tempName, setTempName] = useState(clientName);
     
     // Wellness State
     const [waterIntake, setWaterIntake] = useState(0);
     const [sleepHours, setSleepHours] = useState(0);
     const [sleepQuality, setSleepQuality] = useState(3);
     const [mealType, setMealType] = useState('breakfast');
+    const [diaryDate, setDiaryDate] = useState(new Date());
+    const [manualFoodName, setManualFoodName] = useState('');
+    const [manualCals, setManualCals] = useState('');
+    const [manualProtein, setManualProtein] = useState('');
+    const [manualCarbs, setManualCarbs] = useState('');
+    const [manualFats, setManualFats] = useState('');
 
     const navigate = useNavigate();
 
@@ -239,18 +258,64 @@ const Dashboard = () => {
         }
     };
 
+    const handleManualEntry = async () => {
+        if (!manualFoodName || !manualCals) return;
+        
+        const entry = {
+            client_id: clientId,
+            name: manualFoodName,
+            calories: Math.round(parseFloat(manualCals) || 0),
+            protein: Math.round(parseFloat(manualProtein) || 0),
+            carbs: Math.round(parseFloat(manualCarbs) || 0),
+            fats: Math.round(parseFloat(manualFats) || 0),
+            meal_type: mealType,
+            created_at: new Date(diaryDate).toISOString()
+        };
+
+        if (isDemo) {
+            setFoodLog([{ ...entry, id: Date.now().toString() }, ...foodLog]);
+            setManualFoodName('');
+            setManualCals('');
+            setManualProtein('');
+            setManualCarbs('');
+            setManualFats('');
+            setActiveTab('foodlog');
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from('food_logs')
+                .insert([entry])
+                .select()
+                .single();
+
+            if (!error && data) {
+                setFoodLog([data, ...foodLog]);
+                setManualFoodName('');
+                setManualCals('');
+                setManualProtein('');
+                setManualCarbs('');
+                setManualFats('');
+                setActiveTab('foodlog');
+            }
+        } catch (err) {
+            console.error('Error saving manual entry:', err);
+        }
+    };
+
     const addToLog = async () => {
         if (!scanResult) return;
 
         if (isDemo) {
             const mockData = {
                 id: Date.now().toString(),
-                created_at: new Date().toISOString(),
+                created_at: new Date(diaryDate).toISOString(),
                 name: scanResult.itemName,
-                calories: scanResult.calories,
-                protein: scanResult.protein,
-                carbs: scanResult.carbs,
-                fats: scanResult.fats,
+                calories: Math.round(scanResult.calories),
+                protein: Math.round(scanResult.protein),
+                carbs: Math.round(scanResult.carbs),
+                fats: Math.round(scanResult.fats),
                 meal_type: mealType
             };
             setFoodLog([mockData, ...foodLog]);
@@ -269,11 +334,12 @@ const Dashboard = () => {
                 .insert([{
                     client_id: clientId,
                     name: scanResult.itemName,
-                    calories: scanResult.calories,
-                    protein: scanResult.protein,
-                    carbs: scanResult.carbs,
-                    fats: scanResult.fats,
-                    meal_type: mealType
+                    calories: Math.round(scanResult.calories),
+                    protein: Math.round(scanResult.protein),
+                    carbs: Math.round(scanResult.carbs),
+                    fats: Math.round(scanResult.fats),
+                    meal_type: mealType,
+                    created_at: new Date(diaryDate).toISOString()
                 }])
                 .select()
                 .single();
@@ -565,6 +631,7 @@ const Dashboard = () => {
         if (!clientId) return;
         try {
             const updateData = {
+                name: clientName,
                 daily_goal: dailyGoal,
                 height: height
             };
@@ -632,6 +699,38 @@ const Dashboard = () => {
             alert("Error uploading image: " + error.message);
         } finally {
             setIsUploadingImage(false);
+        }
+    };
+
+    const handleMotivationPhotoUpload = async (event) => {
+        try {
+            if (!event.target.files || event.target.files.length === 0) return;
+            const file = event.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `motivation-${clientId}-${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            setIsUploadingMotivationPhoto(true);
+
+            const { error: uploadError } = await supabase.storage
+                .from('profile-photos')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: publicUrlData } = supabase.storage
+                .from('profile-photos')
+                .getPublicUrl(filePath);
+
+            const publicUrl = publicUrlData.publicUrl;
+            setMotivationPhoto(publicUrl);
+            localStorage.setItem('motivationPhoto', publicUrl);
+            alert("Motivational photo updated!");
+        } catch (error) {
+            console.error("Error uploading motivation photo: ", error);
+            alert("Error: " + error.message);
+        } finally {
+            setIsUploadingMotivationPhoto(false);
         }
     };
 
@@ -732,9 +831,51 @@ const Dashboard = () => {
                 {/* Main Content Area */}
                 <main className="dashboard-content">
                     <div className="welcome-header fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
+                        <div className="welcome-text">
                             <p className="primary">Welcome back,</p>
-                            <h1>{clientName}</h1>
+                            {isEditingName ? (
+                                <input
+                                    className="name-quick-edit"
+                                    value={tempName}
+                                    autoFocus
+                                    onChange={(e) => setTempName(e.target.value)}
+                                    onBlur={() => {
+                                        setIsEditingName(false);
+                                        setClientName(tempName);
+                                        updateProfile();
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            setIsEditingName(false);
+                                            setClientName(tempName);
+                                            updateProfile();
+                                        }
+                                    }}
+                                    style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        borderBottom: '2px solid var(--primary)',
+                                        color: 'white',
+                                        fontSize: '1.8rem',
+                                        fontWeight: 'bold',
+                                        outline: 'none',
+                                        padding: 0,
+                                        width: 'auto',
+                                        minWidth: '150px'
+                                    }}
+                                />
+                            ) : (
+                                <h1 
+                                    onClick={() => {
+                                        setTempName(clientName);
+                                        setIsEditingName(true);
+                                    }}
+                                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    title="Click to edit name"
+                                >
+                                    {clientName}
+                                </h1>
+                            )}
                         </div>
                         <Avatar url={profilePhotoUrl} name={clientName} size="lg" />
                     </div>
@@ -758,13 +899,6 @@ const Dashboard = () => {
                                             <p style={{ fontSize: '1rem', fontWeight: 'bold', margin: 0 }}>{height} cm</p>
                                         </div>
                                     </div>
-                                    <button 
-                                        onClick={() => setActiveTab('settings')}
-                                        className="secondary-button"
-                                        style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', borderRadius: '20px' }}
-                                    >
-                                        Edit Profile
-                                    </button>
                                 </div>
                             </div>
 
@@ -772,25 +906,26 @@ const Dashboard = () => {
                             <div className="stats-grid" style={{ marginBottom: '2rem' }}>
                                 <div className="stat-card glass-panel" style={{ borderBottom: '3px solid var(--primary)' }}>
                                     <Utensils size={20} className="primary" />
-                                    <span className="stat-value">{foodLog.reduce((acc, curr) => acc + curr.calories, 0)}</span>
+                                    <span className="stat-value">{Math.round(foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + curr.calories, 0))}</span>
                                     <span className="stat-label">Total Intake</span>
                                 </div>
                                 <div className="stat-card glass-panel" style={{ borderBottom: '3px solid #ffb944' }}>
                                     <Flame size={20} style={{ color: '#ffb944' }} />
-                                    <span className="stat-value">{workoutLog.reduce((acc, curr) => acc + (curr.calories_burnt || 0), 0)}</span>
+                                    <span className="stat-value">{Math.round(workoutLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + (curr.calories_burnt || 0), 0))}</span>
                                     <span className="stat-label">Total Burnt</span>
                                 </div>
                                 <div className="stat-card glass-panel" style={{ borderBottom: '3px solid #64d2ff' }}>
                                     <Activity size={20} style={{ color: '#64d2ff' }} />
                                     <span className="stat-value">
-                                        {foodLog.reduce((acc, curr) => acc + curr.calories, 0) - workoutLog.reduce((acc, curr) => acc + (curr.calories_burnt || 0), 0)}
+                                        {Math.round(foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + curr.calories, 0) - 
+                                        workoutLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + (curr.calories_burnt || 0), 0))}
                                     </span>
                                     <span className="stat-label">Net Balance</span>
                                 </div>
                                 <div className="stat-card glass-panel" style={{ borderBottom: '3px solid #f97316' }}>
                                     <Footprints size={20} style={{ color: '#f97316' }} />
-                                    <span className="stat-value">{dailySteps}</span>
-                                    <span className="stat-label">Steps Today</span>
+                                    <span className="stat-value">{Math.round(dailySteps)}</span>
+                                    <span className="stat-label">Steps (Date)</span>
                                 </div>
                             </div>
 
@@ -1070,47 +1205,161 @@ const Dashboard = () => {
                         <div className="overview-section fade-in">
                             {/* Healthify-style Macro Summary */}
                             <div className="calorie-summary-card glass-panel" style={{ padding: '2rem' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'center' }}>
-                                    <div className="macro-ring-section">
-                                        <div className="macro-ring-container">
-                                            <svg className="macro-ring-svg" viewBox="0 0 100 100">
-                                                <circle className="macro-ring-bg" cx="50" cy="50" r="44" />
-                                                <circle 
-                                                    className="macro-ring-fill" 
-                                                    cx="50" 
-                                                    cy="50" 
-                                                    r="44" 
-                                                    strokeDasharray={`${Math.min(100, (foodLog.reduce((acc, curr) => acc + curr.calories, 0) / dailyGoal) * 100) * 2.76} 276`}
-                                                />
-                                            </svg>
-                                            <div className="macro-center-text">
-                                                <div className="value highlight">
-                                                    {dailyGoal - foodLog.reduce((acc, curr) => acc + curr.calories, 0) + workoutLog.reduce((acc, curr) => acc + (curr.calories_burnt || 0), 0)}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 2fr', gap: '2rem', alignItems: 'center' }}>
+                                    {/* Motivation Hub - Black Round Small */}
+                                    <div className="motivation-hub" style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                                        <div 
+                                            className="motivation-circle" 
+                                            style={{ 
+                                                width: '120px', 
+                                                height: '120px', 
+                                                borderRadius: '50%', 
+                                                background: motivationPhoto ? `url(${motivationPhoto}) center/cover no-repeat` : '#000',
+                                                border: '2px solid var(--primary)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                overflow: 'hidden',
+                                                cursor: 'pointer',
+                                                position: 'relative',
+                                                boxShadow: '0 0 20px rgba(0,0,0,0.5)'
+                                            }}
+                                            onClick={() => document.getElementById('motivation-photo-input').click()}
+                                        >
+                                            {!motivationPhoto && (
+                                                <Camera size={30} color="var(--primary)" style={{ opacity: 0.5 }} />
+                                            )}
+                                            {isUploadingMotivationPhoto && (
+                                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <div className="loader small"></div>
                                                 </div>
-                                                <div className="label">Left</div>
+                                            )}
+                                            <div className="upload-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.3s', gap: '15px' }}>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); document.getElementById('motivation-photo-input').click(); }} 
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+                                                    title="Gallery"
+                                                >
+                                                    <Image size={24} color="white" />
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); document.getElementById('motivation-camera-input').click(); }} 
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+                                                    title="Camera"
+                                                >
+                                                    <Camera size={24} color="var(--primary)" />
+                                                </button>
                                             </div>
+                                        </div>
+                                        <input 
+                                            id="motivation-photo-input" 
+                                            type="file" 
+                                            accept="image/*" 
+                                            onChange={handleMotivationPhotoUpload} 
+                                            style={{ display: 'none' }} 
+                                        />
+                                        <input 
+                                            id="motivation-camera-input" 
+                                            type="file" 
+                                            accept="image/*" 
+                                            capture="environment"
+                                            onChange={handleMotivationPhotoUpload} 
+                                            style={{ display: 'none' }} 
+                                        />
+                                        
+                                        <div style={{ width: '100%', textAlign: 'center' }}>
+                                            {isEditingQuote ? (
+                                                <input
+                                                    className="motivation-quote-input"
+                                                    value={motivationQuote}
+                                                    autoFocus
+                                                    onChange={(e) => setMotivationQuote(e.target.value)}
+                                                    onBlur={() => {
+                                                        setIsEditingQuote(false);
+                                                        localStorage.setItem('motivationQuote', motivationQuote);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            setIsEditingQuote(false);
+                                                            localStorage.setItem('motivationQuote', motivationQuote);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        background: '#000',
+                                                        color: 'white',
+                                                        border: '1px solid var(--primary)',
+                                                        borderRadius: '20px',
+                                                        padding: '6px 15px',
+                                                        fontSize: '0.85rem',
+                                                        textAlign: 'center',
+                                                        width: '100%',
+                                                        outline: 'none'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <p 
+                                                    onClick={() => setIsEditingQuote(true)}
+                                                    style={{ 
+                                                        color: 'var(--text-dim)', 
+                                                        fontSize: '0.9rem', 
+                                                        fontStyle: 'italic',
+                                                        cursor: 'pointer',
+                                                        margin: 0,
+                                                        padding: '4px 8px',
+                                                        borderRadius: '8px',
+                                                        transition: 'background 0.3s'
+                                                    }}
+                                                    onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
+                                                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                                >
+                                                    "{motivationQuote}"
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="macro-details">
-                                        <h3>Daily Macros</h3>
-                                        <div className="macro-grid">
-                                            <div className="macro-item">
-                                                <span className="value" style={{ color: '#bef264' }}>{foodLog.reduce((acc, curr) => acc + (curr.protein || 0), 0)}g</span>
-                                                <span className="label">Protein</span>
-                                            </div>
-                                            <div className="macro-item">
-                                                <span className="value" style={{ color: '#64d2ff' }}>{foodLog.reduce((acc, curr) => acc + (curr.carbs || 0), 0)}g</span>
-                                                <span className="label">Carbs</span>
-                                            </div>
-                                            <div className="macro-item">
-                                                <span className="value" style={{ color: '#ffb944' }}>{foodLog.reduce((acc, curr) => acc + (curr.fats || 0), 0)}g</span>
-                                                <span className="label">Fats</span>
+
+                                    <div className="macro-ring-and-details" style={{ borderLeft: '1px solid rgba(255,255,255,0.05)', paddingLeft: '2rem', display: 'flex', gap: '3rem', alignItems: 'center' }}>
+                                        <div className="macro-ring-section">
+                                            <div className="macro-ring-container">
+                                                <svg className="macro-ring-svg" viewBox="0 0 100 100">
+                                                    <circle className="macro-ring-bg" cx="50" cy="50" r="44" />
+                                                    <circle 
+                                                        className="macro-ring-fill" 
+                                                        cx="50" 
+                                                        cy="50" 
+                                                        r="44" 
+                                                        strokeDasharray={`${Math.min(100, (foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + curr.calories, 0) / dailyGoal) * 100) * 2.76} 276`}
+                                                    />
+                                                </svg>
+                                                <div className="macro-center-text">
+                                                    <div className="value highlight">
+                                                        {Math.round(dailyGoal - foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + curr.calories, 0) + workoutLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + (curr.calories_burnt || 0), 0))}
+                                                    </div>
+                                                    <div className="label">Left</div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', color: 'var(--text-dim)', fontSize: '0.9rem' }}>
-                                            <span>Consumed: <strong>{foodLog.reduce((acc, curr) => acc + curr.calories, 0)}</strong></span>
-                                            <span>|</span>
-                                            <span>Goal: <strong>{dailyGoal}</strong></span>
+                                        <div className="macro-details" style={{ flex: 1 }}>
+                                            <h3>Daily Macros</h3>
+                                            <div className="macro-grid">
+                                                <div className="macro-item">
+                                                    <span className="value" style={{ color: '#bef264' }}>{Math.round(foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + (curr.protein || 0), 0))}g</span>
+                                                    <span className="label">Protein</span>
+                                                </div>
+                                                <div className="macro-item">
+                                                    <span className="value" style={{ color: '#64d2ff' }}>{Math.round(foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + (curr.carbs || 0), 0))}g</span>
+                                                    <span className="label">Carbs</span>
+                                                </div>
+                                                <div className="macro-item">
+                                                    <span className="value" style={{ color: '#ffb944' }}>{Math.round(foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + (curr.fats || 0), 0))}g</span>
+                                                    <span className="label">Fats</span>
+                                                </div>
+                                            </div>
+                                            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', color: 'var(--text-dim)', fontSize: '0.9rem' }}>
+                                                <span>Consumed: <strong>{Math.round(foodLog.filter(item => new Date(item.created_at).toDateString() === diaryDate.toDateString()).reduce((acc, curr) => acc + curr.calories, 0))}</strong></span>
+                                                <span>|</span>
+                                                <span>Goal: <strong>{dailyGoal}</strong></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1176,51 +1425,139 @@ const Dashboard = () => {
                                 </button>
                             </div>
 
-                            {['breakfast', 'lunch', 'dinner', 'snack'].map(category => (
-                                <div key={category} className="meal-category-section glass-panel" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
-                                        <h3 style={{ textTransform: 'capitalize' }}>{category}</h3>
-                                        <span className="category-total">
-                                            {foodLog.filter(item => item.meal_type === category).reduce((acc, curr) => acc + curr.calories, 0)} kcal
-                                        </span>
-                                    </div>
-                                    <div className="meal-items">
-                                        {foodLog.filter(item => item.meal_type === category).map(item => (
-                                            <div key={item.id} className="meal-item-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0' }}>
-                                                <div>
-                                                    <div style={{ fontWeight: 'bold' }}>{item.name}</div>
-                                                    <div className="text-dim" style={{ fontSize: '0.8rem' }}>{item.protein}g P | {item.carbs}g C | {item.fats}g F</div>
+                            {/* Calendar Strip */}
+                            <div className="calendar-strip">
+                                {Array.from({ length: 30 }).map((_, i) => {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() - (29 - i));
+                                    const isSelected = d.toDateString() === diaryDate.toDateString();
+                                    const isToday = d.toDateString() === new Date().toDateString();
+                                    return (
+                                        <div 
+                                            key={i}
+                                            onClick={() => setDiaryDate(new Date(d))}
+                                            className={`calendar-day ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
+                                        >
+                                            <span className="weekday">
+                                                {d.toLocaleDateString([], { weekday: 'short' })}
+                                            </span>
+                                            <span className="date">
+                                                {d.getDate()}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {['breakfast', 'lunch', 'dinner', 'snack'].map(category => {
+                                const categoryItems = foodLog.filter(item => 
+                                    item.meal_type === category && 
+                                    new Date(item.created_at).toDateString() === diaryDate.toDateString()
+                                );
+                                return (
+                                    <div key={category} className="meal-category-section glass-panel" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                                            <h3 style={{ textTransform: 'capitalize' }}>{category}</h3>
+                                            <span className="category-total">
+                                                {Math.round(categoryItems.reduce((acc, curr) => acc + curr.calories, 0))} kcal
+                                            </span>
+                                        </div>
+                                        <div className="meal-items">
+                                            {categoryItems.map(item => (
+                                                <div key={item.id} className="meal-item-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem 0' }}>
+                                                    <div>
+                                                        <div style={{ fontWeight: 'bold' }}>{item.name}</div>
+                                                        <div className="text-dim" style={{ fontSize: '0.8rem' }}>
+                                                            {Math.round(item.protein)}g P | {Math.round(item.carbs)}g C | {Math.round(item.fats)}g F
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                        <span style={{ fontWeight: '600' }}>{Math.round(item.calories)}</span>
+                                                        <button onClick={() => deleteFoodEntry(item.id)} className="delete-btn">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                    <span style={{ fontWeight: '600' }}>{item.calories}</span>
-                                                    <button onClick={() => deleteFoodEntry(item.id)} className="delete-btn">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {foodLog.filter(item => item.meal_type === category).length === 0 && (
-                                            <button 
-                                                className="text-dim" 
-                                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.5rem 0' }}
-                                                onClick={() => { setMealType(category); setActiveTab('vision'); }}
-                                            >
-                                                + ADD FOOD
-                                            </button>
-                                        )}
+                                            ))}
+                                            {categoryItems.length === 0 && (
+                                                <button 
+                                                    className="text-dim" 
+                                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.5rem 0', fontStyle: 'italic' }}
+                                                    onClick={() => { setMealType(category); setActiveTab('vision'); }}
+                                                >
+                                                    + Add something to {category}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 
                     {activeTab === 'vision' && (
                         <div className="vision-section fade-in">
-                            <h2>AI Food Scanner</h2>
-                            <p className="text-dim">Gemini AI will estimate your calories from a photo.</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h2>AI Food Scanner</h2>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
+                                    <Plus size={14} /> Manual Entry Below
+                                </div>
+                            </div>
 
                             {!scanResult ? (
-                                <VisionScanner onResult={handleScanResult} />
+                                <>
+                                    <VisionScanner onResult={handleScanResult} />
+                                    
+                                    <div className="manual-entry-form glass-panel" style={{ marginTop: '2rem', padding: '1.5rem' }}>
+                                        <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Or Enter Manually</h3>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                            <input 
+                                                className="glass-input" 
+                                                placeholder="Food name (e.g. Chicken breast)"
+                                                value={manualFoodName}
+                                                onChange={(e) => setManualFoodName(e.target.value)}
+                                            />
+                                            <input 
+                                                type="number" 
+                                                className="glass-input" 
+                                                placeholder="Cals"
+                                                value={manualCals}
+                                                onChange={(e) => setManualCals(e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                                            <input 
+                                                type="number" 
+                                                className="glass-input" 
+                                                placeholder="Protein (g)"
+                                                value={manualProtein}
+                                                onChange={(e) => setManualProtein(e.target.value)}
+                                            />
+                                            <input 
+                                                type="number" 
+                                                className="glass-input" 
+                                                placeholder="Carbs (g)"
+                                                value={manualCarbs}
+                                                onChange={(e) => setManualCarbs(e.target.value)}
+                                            />
+                                            <input 
+                                                type="number" 
+                                                className="glass-input" 
+                                                placeholder="Fats (g)"
+                                                value={manualFats}
+                                                onChange={(e) => setManualFats(e.target.value)}
+                                            />
+                                        </div>
+                                        <button 
+                                            className="primary-button" 
+                                            style={{ width: '100%', padding: '1rem' }}
+                                            onClick={handleManualEntry}
+                                            disabled={!manualFoodName || !manualCals}
+                                        >
+                                            Log Entry
+                                        </button>
+                                    </div>
+                                </>
                             ) : (
                                 <div className="scan-verification glass-panel fade-in" style={{ padding: '2rem', marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>
@@ -1261,15 +1598,15 @@ const Dashboard = () => {
                                         <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
                                             <div>
                                                 <span className="stat-label">Protein</span>
-                                                <p style={{ fontWeight: 'bold' }}>{scanResult.protein}g</p>
+                                                <p style={{ fontWeight: 'bold' }}>{Math.round(scanResult.protein)}g</p>
                                             </div>
                                             <div>
                                                 <span className="stat-label">Carbs</span>
-                                                <p style={{ fontWeight: 'bold' }}>{scanResult.carbs}g</p>
+                                                <p style={{ fontWeight: 'bold' }}>{Math.round(scanResult.carbs)}g</p>
                                             </div>
                                             <div>
                                                 <span className="stat-label">Fats</span>
-                                                <p style={{ fontWeight: 'bold' }}>{scanResult.fats}g</p>
+                                                <p style={{ fontWeight: 'bold' }}>{Math.round(scanResult.fats)}g</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1296,23 +1633,73 @@ const Dashboard = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '2rem' }}>
                                 <Avatar url={profilePhotoUrl} name={clientName} size="xl" />
                                 <div>
-                                    <h2>Profile Settings</h2>
+                                    <h2 style={{ marginBottom: '0.5rem' }}>Profile Settings</h2>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.5rem' }}>
+                                        <label className="text-dim" style={{ fontSize: '0.8rem' }}>Display Name:</label>
+                                        <input
+                                            value={clientName}
+                                            onChange={(e) => setClientName(e.target.value)}
+                                            style={{
+                                                fontSize: '1.2rem',
+                                                fontWeight: 'bold',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                borderBottom: '1px solid var(--primary)',
+                                                color: 'white',
+                                                outline: 'none',
+                                                padding: '2px 0',
+                                                width: '200px'
+                                            }}
+                                        />
+                                        <button 
+                                            onClick={updateProfile}
+                                            style={{ 
+                                                background: 'var(--primary)', 
+                                                border: 'none', 
+                                                color: 'black', 
+                                                cursor: 'pointer',
+                                                fontSize: '0.7rem',
+                                                fontWeight: 'bold',
+                                                padding: '4px 10px',
+                                                borderRadius: '4px'
+                                            }}
+                                        >SAVE</button>
+                                    </div>
                                     <p className="text-dim">Customize your fitness journey targets.</p>
 
-                                    <div style={{ marginTop: '1rem' }}>
+                                    <div style={{ marginTop: '1rem', display: 'flex', gap: '0.8rem' }}>
                                         <label htmlFor="photo-upload" className="primary-button" style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                                             cursor: isUploadingImage ? 'not-allowed' : 'pointer',
                                             opacity: isUploadingImage ? 0.7 : 1,
                                             padding: '0.5rem 1rem', fontSize: '0.9rem'
                                         }}>
+                                            <Image size={16} />
+                                            {isUploadingImage ? 'Uploading...' : 'Library'}
+                                        </label>
+                                        <label htmlFor="photo-camera" className="secondary-button" style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                                            cursor: isUploadingImage ? 'not-allowed' : 'pointer',
+                                            opacity: isUploadingImage ? 0.7 : 1,
+                                            padding: '0.5rem 1rem', fontSize: '0.9rem',
+                                            background: 'rgba(255,255,255,0.05)', color: 'white'
+                                        }}>
                                             <Camera size={16} />
-                                            {isUploadingImage ? 'Uploading...' : 'Change Photo'}
+                                            Camera
                                         </label>
                                         <input
                                             id="photo-upload"
                                             type="file"
                                             accept="image/*"
+                                            onChange={handlePhotoUpload}
+                                            style={{ display: 'none' }}
+                                            disabled={isUploadingImage}
+                                        />
+                                        <input
+                                            id="photo-camera"
+                                            type="file"
+                                            accept="image/*"
+                                            capture="environment"
                                             onChange={handlePhotoUpload}
                                             style={{ display: 'none' }}
                                             disabled={isUploadingImage}
@@ -1445,44 +1832,50 @@ const Dashboard = () => {
                 </main>
             </div>
             
-            {/* Mobile Bottom Navigation */}
-            <nav className="mobile-nav">
-                <div 
-                    className={`mobile-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+            {/* Premium Mobile Bottom Navigation */}
+            <nav className="modern-bottom-nav">
+                <button 
+                    className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`} 
                     onClick={() => setActiveTab('overview')}
                 >
-                    <LayoutDashboard size={20} />
+                    <Home size={24} />
                     <span>Home</span>
-                </div>
-                <div 
-                    className={`mobile-nav-item ${activeTab === 'workout' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('workout')}
-                >
-                    <Activity size={20} />
-                    <span>Workout</span>
-                </div>
-                <div 
-                    className={`mobile-nav-item ${activeTab === 'foodlog' ? 'active' : ''}`}
+                </button>
+                <button 
+                    className={`nav-tab ${activeTab === 'foodlog' ? 'active' : ''}`} 
                     onClick={() => setActiveTab('foodlog')}
                 >
-                    <Utensils size={20} />
-                    <span>Food</span>
-                </div>
-                <div 
-                    className={`mobile-nav-item ${activeTab === 'vision' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('vision')}
+                    <ClipboardList size={24} />
+                    <span>Log</span>
+                </button>
+                <button 
+                    className={`nav-tab ${activeTab === 'workout' ? 'active' : ''}`} 
+                    onClick={() => setActiveTab('workout')}
                 >
-                    <Camera size={20} />
-                    <span>Scan</span>
-                </div>
-                <div 
-                    className={`mobile-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+                    <Dumbbell size={24} />
+                    <span>Workout</span>
+                </button>
+                <button 
+                    className={`nav-tab ${activeTab === 'progress' ? 'active' : ''}`} 
+                    onClick={() => setActiveTab('progress')}
+                >
+                    <BarChart2 size={24} />
+                    <span>Progress</span>
+                </button>
+                <button 
+                    className={`nav-tab ${activeTab === 'settings' ? 'active' : ''}`} 
                     onClick={() => setActiveTab('settings')}
                 >
-                    <Settings size={20} />
+                    <User size={24} />
                     <span>Profile</span>
-                </div>
+                </button>
             </nav>
+
+            {/* FAB */}
+            <button className="floating-add-btn" onClick={() => setActiveTab('vision')}>
+                <Plus size={32} color="#000" />
+            </button>
+
             {/* Shared Media Lightbox */}
             <MediaLightbox item={selectedVideo} onClose={() => setSelectedVideo(null)} />
         </div>

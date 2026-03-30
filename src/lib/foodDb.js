@@ -1,0 +1,22 @@
+export const foodDb = [
+  { id: '1', name: 'Idli (2 pieces)', calories: 120, protein: 4, carbs: 24, fats: 1 },
+  { id: '2', name: 'Dosa (Plain, 1 medium)', calories: 130, protein: 3, carbs: 22, fats: 3 },
+  { id: '3', name: 'Masala Dosa', calories: 250, protein: 5, carbs: 35, fats: 10 },
+  { id: '4', name: 'Upma (1 bowl)', calories: 200, protein: 5, carbs: 30, fats: 7 },
+  { id: '5', name: 'Pongal (1 bowl)', calories: 240, protein: 6, carbs: 36, fats: 8 },
+  { id: '6', name: 'Vada (1 piece)', calories: 140, protein: 3, carbs: 14, fats: 8 },
+  { id: '7', name: 'Chapati/Roti (1 piece)', calories: 85, protein: 3, carbs: 15, fats: 1 },
+  { id: '8', name: 'Rice (White, 1 bowl)', calories: 200, protein: 4, carbs: 45, fats: 0.5 },
+  { id: '9', name: 'Curd Rice (1 bowl)', calories: 220, protein: 6, carbs: 35, fats: 5 },
+  { id: '10', name: 'Sambar (1 small bowl)', calories: 130, protein: 5, carbs: 20, fats: 4 },
+  { id: '11', name: 'Chicken Biryani (1 portion)', calories: 400, protein: 18, carbs: 45, fats: 15 },
+  { id: '12', name: 'Filter Coffee (1 cup)', calories: 80, protein: 3, carbs: 12, fats: 2 },
+  { id: '13', name: 'Oats (1 bowl)', calories: 150, protein: 5, carbs: 27, fats: 3 },
+  { id: '14', name: 'Boiled Egg (1 large)', calories: 78, protein: 6, carbs: 0.6, fats: 5 },
+  { id: '15', name: 'Chicken Breast (Roasted, 100g)', calories: 165, protein: 31, carbs: 0, fats: 3.6 },
+  { id: '16', name: 'Paneer Masala (1 bowl)', calories: 350, protein: 12, carbs: 15, fats: 25 },
+  { id: '17', name: 'Banana (1 medium)', calories: 105, protein: 1.3, carbs: 27, fats: 0.3 },
+  { id: '18', name: 'Apple (1 medium)', calories: 95, protein: 0.5, carbs: 25, fats: 0.3 },
+  { id: '19', name: 'Protein Shake (1 scoop)', calories: 120, protein: 24, carbs: 3, fats: 1.5 },
+  { id: '20', name: 'Poha (1 bowl)', calories: 250, protein: 5, carbs: 45, fats: 6 }
+];

@@ -25,9 +25,10 @@ const Footer = () => {
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="/" className="footer-link">Home</a></li>
-                        <li><a href="/blog" className="footer-link">Blog</a></li>
                         <li><a href="/gallery" className="footer-link">Gallery</a></li>
+                        <li><a href="/features" className="footer-link">Features</a></li>
                         <li><a href="/testimonials" className="footer-link">Testimonials</a></li>
+                        <li><a href="/pricing" className="footer-link">Pricing</a></li>
                     </ul>
                 </div>
 
@@ -36,7 +37,15 @@ const Footer = () => {
                     <ul>
                         <li>
                             <MapPin size={18} className="contact-icon" />
-                            <span>129, Palani Rd, near 5K Car Care, Udumalaipettai, Tamil Nadu 642126</span>
+                            <a 
+                                href="https://www.google.com/maps/dir//Elite+CrossFit,+129,+Palani+Rd,+near+5K+Car+Care,+Udumalaipettai,+Tamil+Nadu+642126/@10.5807445,77.2562231,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x3ba9cde5c9514401:0x2d230b460a00e821!2m2!1d77.256153!2d10.5816073?entry=ttu&g_ep=EgoyMDI2MDMyNC4wIKXMDSoASAFQAw%3D%3D"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="footer-address-link"
+                                style={{ color: 'inherit', textDecoration: 'none' }}
+                            >
+                                <span>129, Palani Rd, near 5K Car Care, Udumalaipettai, Tamil Nadu 642126</span>
+                            </a>
                         </li>
                         <li>
                             <Phone size={18} className="contact-icon" />
@@ -44,7 +53,7 @@ const Footer = () => {
                         </li>
                         <li>
                             <Mail size={18} className="contact-icon" />
-                            <span>info@elitecrossfit.com</span>
+                            <span>mail2crossfit@gmail.com</span>
                         </li>
                     </ul>
                 </div>

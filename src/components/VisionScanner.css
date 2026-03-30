@@ -5,21 +5,42 @@
     text-align: center;
 }
 
-.upload-placeholder {
+.upload-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.upload-card {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 1rem;
-    padding: 3rem;
-    border: 2px dashed rgba(163, 230, 53, 0.3);
-    border-radius: 12px;
+    padding: 2.5rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.upload-placeholder:hover {
+.upload-card:hover {
     border-color: var(--primary);
-    background: rgba(163, 230, 53, 0.05);
+    background: rgba(205, 255, 0, 0.05);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.upload-card p {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.upload-card:hover p {
+    color: var(--primary);
 }
 
 .preview-container {

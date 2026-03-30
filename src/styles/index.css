@@ -200,3 +200,119 @@ button {
   background-color: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
 }
+
+/* Summary Chips (Healthify Style) */
+.summary-chips {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-chip {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 10px 4px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.summary-chip:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.summary-chip .label {
+    font-size: 0.65rem;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.summary-chip .value {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* Calendar Strip Shared Styles */
+.calendar-strip {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1.5rem 1rem;
+    margin-bottom: 2rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.calendar-strip::-webkit-scrollbar {
+    display: none;
+}
+
+.calendar-day {
+    flex: 0 0 auto;
+    width: 65px;
+    height: 85px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    user-select: none;
+}
+
+.calendar-day:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-4px);
+    border-color: rgba(205, 255, 0, 0.2);
+}
+
+.calendar-day.selected {
+    background: var(--color-primary);
+    color: #000;
+    box-shadow: 0 10px 25px rgba(205, 255, 0, 0.3);
+    border: none;
+    transform: scale(1.05);
+}
+
+.calendar-day .weekday {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.calendar-day .date {
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.calendar-day.today::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    width: 6px;
+    height: 6px;
+    background: var(--color-primary);
+    border-radius: 50%;
+}
+
+.calendar-day.selected.today::after {
+    background: #000;
+}
+
+@media (max-width: 768px) {
+    .calendar-day {
+        width: 55px;
+        height: 75px;
+    }
+}

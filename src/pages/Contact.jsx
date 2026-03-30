@@ -61,9 +61,16 @@ const Contact = () => {
                                 <MapPin className="info-icon" size={24} />
                                 <div>
                                     <h4>Location</h4>
-                                    <p>129, Palani Rd, near 5K Car Care, Udumalaipettai, Tamil Nadu 642126</p>
+                                    <a 
+                                        href="https://www.google.com/maps/dir//Elite+CrossFit,+129,+Palani+Rd,+near+5K+Car+Care,+Udumalaipettai,+Tamil+Nadu+642126/@10.5807445,77.2562231,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x3ba9cde5c9514401:0x2d230b460a00e821!2m2!1d77.256153!2d10.5816073?entry=ttu&g_ep=EgoyMDI2MDMyNC4wIKXMDSoASAFQAw%3D%3D"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="address-link"
+                                    >
+                                        <p>129, Palani Rd, near 5K Car Care, Udumalaipettai, Tamil Nadu 642126</p>
+                                    </a>
                                     <a
-                                        href="https://maps.google.com/?q=Elite+CrossFit,129,Palani+Rd,near+5K+Car+Care,Udumalaipettai,Tamil+Nadu+642126"
+                                        href="https://www.google.com/maps/dir//Elite+CrossFit,+129,+Palani+Rd,+near+5K+Car+Care,+Udumalaipettai,+Tamil+Nadu+642126/@10.5807445,77.2562231,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x3ba9cde5c9514401:0x2d230b460a00e821!2m2!1d77.256153!2d10.5816073?entry=ttu&g_ep=EgoyMDI2MDMyNC4wIKXMDSoASAFQAw%3D%3D"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="map-link text-gradient"
@@ -98,7 +105,7 @@ const Contact = () => {
                                 <Mail className="info-icon" size={24} />
                                 <div>
                                     <h4>Email</h4>
-                                    <p>info@elitecrossfit.com</p>
+                                    <p>mail2crossfit@gmail.com</p>
                                 </div>
                             </div>
 

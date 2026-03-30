@@ -268,7 +268,9 @@
 /* Pricing Section */
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(2, 1fr); /* Force 2 columns when space allows */
+    max-width: 900px;                      /* Keep cards from getting too wide */
+    margin: 0 auto;
     gap: var(--spacing-8);
     align-items: stretch;
 }
@@ -336,14 +338,27 @@
 /* Testimonials Section */
 .testimonials-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-8);
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-6);
+}
+
+@media (max-width: 1024px) {
+    .testimonials-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .testimonial-card {
     text-align: left;
     display: flex;
     flex-direction: column;
+    height: 100%;
+}
+
+.testimonial-content {
+    flex-grow: 1;
+    font-size: 0.85rem;
+    line-height: 1.5;
 }
 
 /* CTA Section */
@@ -439,4 +454,69 @@
 .comparison-icon.negative {
     color: var(--color-text-muted);
     opacity: 0.5;
-}
+}
+
+/* Fix missing Tailwind classes on Home.jsx for Testimonials */
+
+.testimonial-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.testimonial-footer img {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    border: 2px solid var(--color-primary);
+    object-fit: cover;
+}
+
+.testimonial-footer h4 {
+    font-weight: 700;
+    margin: 0;
+}
+
+.testimonial-footer p {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.flex {
+    display: flex;
+}
+.gap-1 {
+    gap: 0.25rem;
+}
+.mb-4 {
+    margin-bottom: 1rem;
+}
+.italic {
+    font-style: italic;
+}
+.text-lg {
+    font-size: 1.125rem;
+}
+.opacity-90 {
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .pricing-grid,
+    .testimonials-grid,
+    .video-grid,
+    .gallery-preview-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pricing-card.popular-plan {
+        scale: 1;
+        z-index: 1;
+    }
+    .pricing-card.popular-plan:hover {
+        transform: translateY(-5px);
+    }
+}
+

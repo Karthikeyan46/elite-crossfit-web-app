@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Camera, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Camera, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import './VisionScanner.css';
-import { analyzeFoodImage } from '../lib/gemini';
+import { analyzeFoodImage } from '../services/aiService';
 
 const VisionScanner = ({ onResult }) => {
     const [image, setImage] = useState(null);
@@ -19,28 +19,20 @@ const VisionScanner = ({ onResult }) => {
     };
 
     const scanFood = async () => {
+        if (!image) return;
         setLoading(true);
         setError(null);
 
         try {
-            // Convert file to base64 for gemini utility
-            const base64Data = await new Promise((resolve) => {
+            const base64Data = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
                 reader.readAsDataURL(image);
             });
 
-            const data = await analyzeFoodImage(base64Data);
-            
-            // Map 'name' from gemini.js to 'itemName' if components expect it, 
-            // but better to fix components to use 'name'.
-            // For now, let's provide both to be safe.
-            const result = {
-                ...data,
-                itemName: data.name
-            };
-
-            onResult(result);
+            const suggestions = await analyzeFoodImage(base64Data);
+            onResult(suggestions);
         } catch (err) {
             console.error('AI Scan Error:', err);
             setError(`AI Error: ${err.message || 'Failed to analyze image'}`);
@@ -50,20 +42,34 @@ const VisionScanner = ({ onResult }) => {
     };
 
     return (
-        <div className="vision-scanner glass-panel">
-            <div className="upload-section">
+        <div className="vision-scanner glass-panel" style={{ borderRadius: '24px', overflow: 'hidden' }}>
+            <div className="upload-section" style={{ padding: '1rem' }}>
                 {!preview ? (
-                    <label className="upload-placeholder">
-                        <Camera size={48} className="primary" />
-                        <p>Upload or Take a Photo</p>
-                        <input type="file" accept="image/*" onChange={handleImageChange} hidden />
-                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <label className="upload-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)', cursor: 'pointer' }}>
+                            <input type="file" accept="image/*" onChange={handleImageChange} hidden />
+                            <ImageIcon size={32} color="var(--color-primary)" />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Gallery</span>
+                        </label>
+                        <label className="upload-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)', cursor: 'pointer' }}>
+                            <input type="file" accept="image/*" capture="environment" onChange={handleImageChange} hidden />
+                            <Camera size={32} color="var(--color-primary)" />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Camera</span>
+                        </label>
+                    </div>
                 ) : (
-                    <div className="preview-container">
-                        <img src={preview} alt="Meal preview" className="meal-preview" />
+                    <div style={{ position: 'relative' }}>
+                        <img 
+                            src={preview} 
+                            alt="Meal preview" 
+                            style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '16px' }} 
+                        />
                         {!loading && (
-                            <button className="change-btn" onClick={() => { setImage(null); setPreview(null); }}>
-                                Change Photo
+                            <button 
+                                onClick={() => { setImage(null); setPreview(null); }}
+                                style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: 20, fontSize: '0.75rem', cursor: 'pointer' }}
+                            >
+                                Change
                             </button>
                         )}
                     </div>
@@ -71,22 +77,28 @@ const VisionScanner = ({ onResult }) => {
             </div>
 
             {error && (
-                <div className="error-box">
-                    <AlertCircle size={18} />
+                <div style={{ padding: '1rem', color: '#ff4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,68,68,0.05)', margin: '0 1rem 1rem', borderRadius: 12 }}>
+                    <AlertCircle size={16} />
                     <span>{error}</span>
                 </div>
             )}
 
-            {image && !loading && !error && (
-                <button className="primary-button scan-btn" onClick={scanFood}>
-                    Analyze Meal
-                </button>
+            {preview && !loading && !error && (
+                <div style={{ padding: '0 1rem 1rem' }}>
+                    <button 
+                        className="primary-button" 
+                        onClick={scanFood}
+                        style={{ width: '100%', padding: '14px', borderRadius: '12px', fontWeight: 800 }}
+                    >
+                        Analyze Plate
+                    </button>
+                </div>
             )}
 
             {loading && (
-                <div className="loading-box">
-                    <Loader2 size={32} className="animate-spin primary" />
-                    <p>AI is analyzing your plate...</p>
+                <div style={{ padding: '2rem', textAlign: 'center' }}>
+                    <Loader2 size={32} className="animate-spin" color="var(--color-primary)" style={{ margin: '0 auto 15px' }} />
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>FitCoach AI is identifying your food...</p>
                 </div>
             )}
         </div>

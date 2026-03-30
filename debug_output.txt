@@ -1,0 +1,37 @@
+﻿[dotenv@17.3.1] injecting env (8) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`
+Testing Gemini API with model: gemini-2.0-flash...
+node : Error Type: GoogleG
+enerativeAIFetchError
+At line:1 char:1
++ node debug_gemini.js 
+2>&1 | Out-File -FilePath 
+debug_output.txt -Enco ...
++ 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (E  
+  rror Type: GoogleGene   
+ rativeAIFetchError:St    
+ring) [], RemoteExcep    
+tion
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+Error Message: 
+[GoogleGenerativeAI 
+Error]: Error fetching 
+from https://generativelan
+guage.googleapis.com/v1bet
+a/models/gemini-1.5-flash:
+generateContent: [404 Not 
+Found] 
+models/gemini-1.5-flash 
+is not found for API 
+version v1beta, or is not 
+supported for 
+generateContent. Call 
+ListModels to see the 
+list of available models 
+and their supported 
+methods.

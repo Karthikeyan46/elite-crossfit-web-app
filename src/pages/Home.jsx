@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import Button from '../components/Button';
 import Card from '../components/Card';
-import Avatar from '../components/Avatar';
 import trainerImage from '../assets/image/trainer.jpg';
 import { pricingPlans, testimonials } from '../data/gymData';
 import './Home.css';
@@ -167,8 +166,6 @@ const Home = () => {
                 </div>
             </section>
 
-
-
             {/* Pricing Section */}
             <section className="pricing-section container" id="pricing">
                 <div className="section-header">
@@ -205,9 +202,9 @@ const Home = () => {
             </section>
 
             {/* Testimonials Section */}
-            <section className="testimonials-section container">
+            <section className="testimonials-section container" id="success">
                 <div className="section-header">
-                    <h2 className="section-title">Athlete <span className="text-gradient">Stories</span></h2>
+                    <h2 className="section-title">Success <span className="text-gradient">Stories</span></h2>
                     <p className="section-subtitle">Hear from those who have transformed their lives with us.</p>
                 </div>
                 <div className="testimonials-grid">
@@ -218,9 +215,8 @@ const Home = () => {
                                     <Star key={i} size={16} fill="var(--color-primary)" color="var(--color-primary)" />
                                 ))}
                             </div>
-                            <p className="testimonial-content italic text-lg opacity-90">"{t.content}"</p>
+                            <p className="testimonial-content italic opacity-90">"{t.content}"</p>
                             <div className="testimonial-footer mt-6 flex items-center gap-4">
-                                <img src={t.image} alt={t.name} className="w-12 h-12 rounded-full border-2 border-primary" />
                                 <div>
                                     <h4 className="font-bold">{t.name}</h4>
                                     <p className="text-dim text-sm">{t.role}</p>
@@ -230,8 +226,6 @@ const Home = () => {
                     ))}
                 </div>
             </section>
-
-
 
             {/* CTA Section */}
             <section className="cta-section">

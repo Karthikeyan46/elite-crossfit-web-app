@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, Utensils, TrendingUp, ClipboardList, Save, Image as ImageIcon, Trash2 } from 'lucide-react';
-import { supabase, TABLES } from '../../lib/supabase';
+import { supabase, TABLES } from '../../services/supabaseClient';
 import Avatar from '../../components/Avatar';
 
 // Tiny SVG weight line chart
