@@ -52,12 +52,11 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      {/* Show Navbar only for marketing pages and NOT on mobile */}
-      {!isMobile && !isInApp && <Navbar />}
+      {!isInApp && <Navbar />}
       
       <main style={{ 
-          minHeight: (isMobile || isInApp) ? '100vh' : 'calc(100vh - 80px)', 
-          paddingTop: (isMobile || isInApp) ? '0' : '80px' 
+          minHeight: isInApp ? '100vh' : 'calc(100vh - 80px)', 
+          paddingTop: isInApp ? '0' : '80px' 
       }}>
         <Suspense fallback={<div className="loader-container"><div className="loader"></div></div>}>
           <Routes>
@@ -78,14 +77,14 @@ function AppContent() {
             <Route path="/profile"          element={<ProtectedRoute role="client"><ClientProfile /></ProtectedRoute>} />
             <Route path="/progress"         element={<ProtectedRoute role="client"><ClientProgress /></ProtectedRoute>} />
             <Route path="/checkin"          element={<ProtectedRoute role="client"><ClientCheckin /></ProtectedRoute>} />
-
+ 
             {/* 👨🏫 TRAINER ROUTES */}
             <Route path="/trainer-dashboard" element={<ProtectedRoute role="trainer"><TrainerDashboard /></ProtectedRoute>} />
             <Route path="/trainer/clients"     element={<ProtectedRoute role="trainer"><TrainerClientList /></ProtectedRoute>} />
             <Route path="/trainer/clients/:id" element={<ProtectedRoute role="trainer"><TrainerClientDetail /></ProtectedRoute>} />
             <Route path="/trainer/workouts"    element={<ProtectedRoute role="trainer"><TrainerWorkoutList /></ProtectedRoute>} />
             <Route path="/trainer/workouts/new" element={<ProtectedRoute role="trainer"><TrainerWorkoutNew /></ProtectedRoute>} />
-
+ 
             {/* Fallback */}
             <Route path="/client-dashboard" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -94,7 +93,7 @@ function AppContent() {
       </main>
       
       {/* Show Footer only for marketing pages and NOT on mobile */}
-      {!isMobile && !isInApp && <Footer />}
+      {!isInApp && <Footer />}
     </div>
   );
 }
